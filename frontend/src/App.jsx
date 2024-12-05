@@ -5,51 +5,41 @@ import Navigation from './components/shared/Navigation/Navigation'
 import Authenticate from './pages/Authenticate/Authenticate'
 import Activate from './pages/Activate/Activate'
 import Room from './pages/Rooms/Rooms'
+import { useSelector } from 'react-redux'
 
 const App = () => {
-  const isAuth = false;
-  const isActive = false;
-
   return (
     <BrowserRouter>
       <Navigation />
       <Routes>
-        <Route path="/" element={<GuestRoute isAuth={isAuth} isActive={isActive}><Home /></GuestRoute>} />
-        <Route path="/authenticate" element={<GuestRoute isAuth={isAuth} isActive={isActive}><Authenticate /></GuestRoute>} />
-        <Route path="/activate" element={<SemiProtectedRoute isAuth={isAuth} isActive={isActive}><Activate /></SemiProtectedRoute>} />
-        <Route path="/rooms" element={<ProtectedRoute isAuth={isAuth} isActive={isActive}><Room /></ProtectedRoute>} />
+        <Route path="/" element={<RouteGuard redirectTo="/rooms" checkAuth={false} checkActive={false}><Home /></RouteGuard>} />
+        <Route path="/authenticate" element={<RouteGuard redirectTo="/rooms" checkAuth={false} checkActive={false}><Authenticate /></RouteGuard>} />
+        <Route path="/activate" element={<RouteGuard redirectTo="/rooms" checkAuth={true} checkActive={false}><Activate /></RouteGuard>} />
+        <Route path="/rooms" element={<RouteGuard redirectTo="/" checkAuth={true} checkActive={true}><Room /></RouteGuard>} />
       </Routes>
     </BrowserRouter>
   );
 };
 
-const GuestRoute = ({ children, isAuth, isActive }) => {
-  if (isAuth) {
-    if (isActive) {
-      return <Navigate to="/rooms" />;
+// Centralized RouteGuard component
+const RouteGuard = ({ children, redirectTo, checkAuth, checkActive }) => {
+  const { isAuth, isActive } = useSelector(state => state.authSlice); // Destructuring directly
+
+  if (checkAuth && !isAuth) {
+    return <Navigate to="/" />;
+  }
+
+  if (checkActive && !isActive) {
+    return <Navigate to="/activate" />;
+  }
+
+  if (!checkAuth && isAuth) {
+    if (checkActive && !isActive) {
+      return <Navigate to="/activate" />;
     }
-    return <Navigate to="/activate" />;
+    return <Navigate to={redirectTo} />;
   }
-  return children;
-};
 
-const SemiProtectedRoute = ({ children, isAuth, isActive }) => {
-  if (!isAuth) {
-    return <Navigate to="/" />;
-  }
-  if (isAuth && !isActive) {
-    return children;
-  }
-  return <Navigate to="/rooms" />;
-};
-
-const ProtectedRoute = ({ children, isAuth, isActive }) => {
-  if (!isAuth) {
-    return <Navigate to="/" />;
-  }
-  if (isAuth && !isActive) {
-    return <Navigate to="/activate" />;
-  }
   return children;
 };
 
