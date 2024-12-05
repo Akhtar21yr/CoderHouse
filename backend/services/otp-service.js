@@ -1,9 +1,10 @@
 const crypto = require("crypto");
-const hashService = require('./hash-service')
+const hashService = require("./hash-service");
 
 const smsSid = process.env.SMS_SID;
 const smsToken = process.env.SMS_TOKEN;
 const smsNo = process.env.SMS_NO;
+
 const twilio = require("twilio")(smsSid, smsToken, {
   lazyLoading: true,
 });
@@ -23,8 +24,10 @@ class OtpService {
   }
 
   verifyOtp(hashOtp, data) {
-    return hashOtp === hashService.hashOtp(data)
+    return hashOtp === hashService.hashOtp(data);
   }
+
+  
 }
 
 module.exports = new OtpService();
