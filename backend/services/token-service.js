@@ -2,6 +2,7 @@ const jwt = require("jsonwebtoken");
 const acessTokenSecret = process.env.ACCESS_TOKEN_SECRET_KEY;
 const refreshTokenSecret = process.env.REFRESH_TOKEN_SECRET_KEY;
 const refreshModel = require("../model/refresh-model");
+const { default: mongoose } = require("mongoose");
 
 class TokenService {
   genrateTokens(user) {
@@ -10,13 +11,11 @@ class TokenService {
       phone: user.phone,
     };
     const accessToken = jwt.sign(payload, acessTokenSecret, {
-      expiresIn: "1h",
+      expiresIn: "1m",
     });
     const refreshToken = jwt.sign(payload, refreshTokenSecret, {
       expiresIn: "7d",
     });
-    console.log("Access Token:", accessToken); // Debugging line
-    console.log("Refresh Token:", refreshToken); // Debugging line
     return { accessToken, refreshToken };
   }
 
@@ -40,7 +39,7 @@ class TokenService {
   }
 
   async findRefreshToken(userId, refreshToken) {
-    return await refreshModel.findOne({ _id: userId, token: refreshToken });
+    return await refreshModel.findOne({ userId: userId, token: refreshToken });
   }
 
   async updateRefreshToken(userId, refreshToken) {
@@ -48,6 +47,13 @@ class TokenService {
       { userId: userId },
       { token: refreshToken }
     );
+  }
+
+  async removeToken(refreshToken) {
+    console.log(refreshToken)
+    const dbResponse =  await refreshModel.deleteOne({ token: refreshToken });
+    console.log(dbResponse)
+    return dbResponse
   }
 }
 

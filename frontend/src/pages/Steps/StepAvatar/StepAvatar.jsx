@@ -8,13 +8,16 @@ import { ACTIVATE_API } from '../../../http';
 import { setAuth } from '../../../store/authSlice';
 import { monkey_png, profile_default } from '../../../assets/images';
 import { useNavigate } from 'react-router-dom';
+import Loader from '../../../components/shared/Loader/Loader';
 
 
 const StepAvatar = ({ onNext }) => {
     const dispatch = useDispatch();
     const { name, avatar } = useSelector((state) => state.activateSlice);
     const [image, setImage] = useState(profile_default);
-    const navigate = useNavigate()
+    const [loading, setLoading] = useState(false)
+
+
     function captureImage(e) {
         const file = e.target.files[0];
         const reader = new FileReader();
@@ -24,19 +27,28 @@ const StepAvatar = ({ onNext }) => {
             dispatch(setAvatar(reader.result));
         };
     }
+
+
     async function submit() {
+        if (!name || !avatar) return
+        setLoading(true)
         try {
             const { data } = await ACTIVATE_API({ name, avatar });
             if (data.auth) {
                 dispatch(setAuth(data));
             }
-            console.log(data);
-            navigate('/rooms')
+
 
         } catch (err) {
             console.log(err);
         }
+        finally {
+            setLoading(false)
+        }
     }
+
+    if (loading) return <Loader message='Activating...' />
+
     return (
         <>
             <Card title={`Okay, ${name}`} icon={monkey_png} >

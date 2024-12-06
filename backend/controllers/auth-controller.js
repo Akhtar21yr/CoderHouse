@@ -19,7 +19,6 @@ class AuthController {
     const hashOtp = hashService.hashOtp(data);
 
     try {
-      // await otpService.sendBysms(phone, otp);
       return res.json({
         hash: `${hashOtp}.${expire}`,
         phone,
@@ -29,8 +28,6 @@ class AuthController {
       console.log(error);
       return res.status(500).json({ error: `erro occured ${error}` });
     }
-
-    res.send(`Your Otp is ${hashOtp}`);
   }
 
   async verifyOtp(req, res) {
@@ -83,41 +80,70 @@ class AuthController {
   }
 
   async refresh(req, res) {
-    const { refreshToken: refreshTokenFromCookie } = req.cookies;
+    const { refreshtoken: refreshTokenFromCookie } = req.cookies;
+    console.log("Received refresh token:", refreshTokenFromCookie); // Debug log
+
     let userData;
     try {
       userData = await tokenService.verifyRefreshToken(refreshTokenFromCookie);
+      console.log("Verified refresh token, user data:", userData); // Debug log
     } catch (error) {
-      return res.status(401).json({ msg: "Invalid Refresh Token" });
+      console.error("Error verifying refresh token:", error); // Debug log
+      return res.status(401).json({ msg: "1Invalid Refresh Token" });
     }
 
+    let token;
     try {
-      const token = await tokenService.findRefreshToken(
-        userData._id,
+      token = await tokenService.findRefreshToken(
+        userData.id,
         refreshTokenFromCookie
       );
-
       if (!token) {
-        return res.status(401).json({ msg: "Invalid Refresh Token" });
+        console.log("No token found for user:", userData.id); // Debug log
+        return res.status(401).json({ msg: "2Invalid Refresh Token" });
       }
+      console.log("Token found for user:", token); // Debug log
     } catch (error) {
-      return res.status(500).json({ msg: "internal error" });
+      console.error("Error finding refresh token:", error); // Debug log
+      return res.status(500).json({ msg: "Internal error" });
     }
 
-    const user = await userService.findUser({ _id: userData._id });
-    if (!user) {
-      return res.status(400).json({ msg: "User Not Found" });
+    let user;
+    try {
+      user = await userService.findUser({ _id: userData.id });
+      if (!user) {
+        console.log("User not found:", userData.id); // Debug log
+        return res.status(400).json({ msg: "User Not Found" });
+      }
+      console.log("User found:", user); // Debug log
+    } catch (error) {
+      console.error("Error fetching user:", error); // Debug log
+      return res.status(500).json({ msg: "Internal server error" });
     }
 
-    const { refreshToken, accessToken } = tokenService.genrateTokens({
-      _id: userData._id,
-    });
+    let refreshToken, accessToken;
+    try {
+      const tokens = tokenService.genrateTokens(user);
+      refreshToken = tokens.refreshToken;
+      accessToken = tokens.accessToken;
+      console.log("Generated tokens:", { refreshToken, accessToken }); // Debug log
+    } catch (error) {
+      console.error("Error generating tokens:", error); // Debug log
+      return res
+        .status(500)
+        .json({ msg: "Internal error while generating tokens" });
+    }
 
     try {
-      await tokenService.updateRefreshToken(userData._id, refreshToken);
+      await tokenService.updateRefreshToken(userData.id, refreshToken);
+      console.log("Updated refresh token in database"); // Debug log
     } catch (error) {
-      return res.status(500).json({ msg: "internal error" });
+      console.error("Error updating refresh token:", error); // Debug log
+      return res
+        .status(500)
+        .json({ msg: "Internal error updating refresh token" });
     }
+
     res.cookie("refreshtoken", refreshToken, {
       maxAge: 1000 * 60 * 60 * 24,
       httpOnly: true,
@@ -126,8 +152,19 @@ class AuthController {
       maxAge: 1000 * 60 * 60 * 24,
       httpOnly: true,
     });
+    console.log("Cookies set successfully"); // Debug log
+
     const userDto = new UserDto(user);
+    console.log("Sending response:", { user: userDto, auth: true }); // Debug log
     res.json({ user: userDto, auth: true });
+  }
+
+  async logout(req, res) {
+    const { refreshtoken } = req.cookies;
+    await tokenService.removeToken(refreshtoken);
+    res.clearCookie("refreshtoken");
+    res.clearCookie("accesstoken");
+    res.json({ user: null, auth: false });
   }
 }
 

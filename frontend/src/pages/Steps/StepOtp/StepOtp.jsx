@@ -15,6 +15,7 @@ const StepOtp = () => {
     const dispatch = useDispatch();
     const { phone, hash } = useSelector((state) => state.authSlice.otp);
     async function submit() {
+        if (!otp || !phone || !hash) return
         try {
             const { data } = await VERIFY_OTP_API({ otp, phone, hash });
             dispatch(setAuth(data));

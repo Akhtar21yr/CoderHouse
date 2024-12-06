@@ -9,7 +9,6 @@ import { smile_png } from '../../../assets/images';
 
 const StepName = ({ onNext }) => {
     const {name} = useSelector((state) => state.activateSlice);
-    console.log(name)
     const dispatch = useDispatch();
     const [fullname, setFullname] = useState(name);
 
