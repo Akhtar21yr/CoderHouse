@@ -9,6 +9,11 @@ import smile_png from "./smile_png.png";
 import monkey_png from './monkey_png.png'
 import profile_default from './profile_default.png'
 import logout_png from './logout.png'
+import search_png from './search.png'
+import add_room_png from './add-room-icon.png'
+import name_buble_png from './name_buble.png'
+import user_icon_png from './user-icon.png'
+
 export {
   Emoji,
   arrow_forward,
@@ -20,5 +25,9 @@ export {
   smile_png,
   monkey_png,
   profile_default,
-  logout_png
+  logout_png,
+  search_png,
+  add_room_png,
+  name_buble_png,
+  user_icon_png
 };

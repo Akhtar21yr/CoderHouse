@@ -50,3 +50,10 @@ body {
   justify-content: center;
   margin-top: 6rem;
 }
+
+
+button {
+  border: none;
+  outline: none;
+  font-weight: bold;
+}
