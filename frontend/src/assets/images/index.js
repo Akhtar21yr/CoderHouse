@@ -13,6 +13,11 @@ import search_png from './search.png'
 import add_room_png from './add-room-icon.png'
 import name_buble_png from './name_buble.png'
 import user_icon_png from './user-icon.png'
+import Globe_png from './Globe.png'
+import users_png from './Users.png'
+import Lock_png from './Lock.png'
+import celebration_png from './celebration.png'
+import close_png from './close.png'
 
 export {
   Emoji,
@@ -29,5 +34,11 @@ export {
   search_png,
   add_room_png,
   name_buble_png,
-  user_icon_png
+  user_icon_png,
+  Lock_png,
+  Globe_png,
+  users_png,
+  celebration_png,
+  close_png
+
 };

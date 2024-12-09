@@ -1,80 +1,27 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import styles from './Rooms.module.css'
 import { add_room_png, monkey_png, search_png } from '../../assets/images'
 import RoomCard from '../../components/RoomCard/RoomCard';
+import AddRoomModal from '../../components/AddRoomModal/AddRoomModal';
+import { GET_ALL_ROOMS_API } from '../../http';
 
 
 const Rooms = () => {
-  const rooms = [
-    {
-      id: 1,
-      topic: 'Which framework best for frontend ?',
-      speakers: [
-        {
-          id: 1,
-          name: 'John Doe',
-          avatar: monkey_png,
-        },
-        {
-          id: 2,
-          name: 'Jane Doe',
-          avatar: monkey_png,
-        },
-      ],
-      totalPeople: 40,
-    },
-    {
-      id: 3,
-      topic: 'What’s new in machine learning?',
-      speakers: [
-        {
-          id: 1,
-          name: 'John Doe',
-          avatar: monkey_png,
-        },
-        {
-          id: 2,
-          name: 'Jane Doe',
-          avatar: monkey_png,
-        },
-      ],
-      totalPeople: 40,
-    },
-    {
-      id: 4,
-      topic: 'Why people use stack overflow?',
-      speakers: [
-        {
-          id: 1,
-          name: 'John Doe',
-          avatar: monkey_png,
-        },
-        {
-          id: 2,
-          name: 'Jane Doe',
-          avatar: monkey_png,
-        },
-      ],
-      totalPeople: 40,
-    },
-    {
-      id: 5,
-      topic: 'Artificial inteligence is the future?',
-      speakers: [
-        {
-          id: 1,
-          name: 'John Doe',
-          avatar: monkey_png,
-        },
-        {
-          id: 2,
-          name: 'Jane Doe',
-          avatar: monkey_png,
-        },
-      ],
-      totalPeople: 40,
-    },
-  ];
+  const [showModal, setShowModal] = useState(false);
+  const [rooms, setRooms] = useState([])
+
+  useEffect(() => {
+    const fetchRooms = async () => {
+        const { data } = await GET_ALL_ROOMS_API();
+        setRooms(data);
+    };
+    fetchRooms();
+}, []);
+
+  function openModal() {
+    setShowModal(true);
+  }
+
   return (
     <>
       <div className="container">
@@ -88,7 +35,7 @@ const Rooms = () => {
           </div>
           <div className={styles.right}>
             <button
-              // onClick={openModal}
+              onClick={openModal}
               className={styles.startRoomButton}
             >
               <img
@@ -105,6 +52,7 @@ const Rooms = () => {
           ))}
         </div>
       </div>
+      {showModal && <AddRoomModal onClose={() => setShowModal(false)} />}
     </>
   )
 }

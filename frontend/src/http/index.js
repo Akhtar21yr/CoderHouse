@@ -9,6 +9,9 @@ export const SEND_OTP_API = (data) => api.post("/api/send-otp", data);
 export const VERIFY_OTP_API = (data) => api.post("/api/verify-otp", data);
 export const ACTIVATE_API = (data) => api.post("/api/activate", data);
 export const LOGOUT_API = () => api.get('/api/logout')
+export const CREATE_ROOM_API = (data) => api.post('/api/rooms',data)
+export const GET_ALL_ROOMS_API =  () => api.get('/api/rooms')
+
 
 
 
