@@ -25,8 +25,7 @@ class AuthController {
         otp,
       });
     } catch (error) {
-      console.log(error);
-      return res.status(500).json({ error: `erro occured ${error}` });
+      return res.status(500).json({ error: `error occurred ${error}` });
     }
   }
 
@@ -34,7 +33,7 @@ class AuthController {
     const { otp, hash, phone } = req.body;
 
     if (!otp || !hash || !phone) {
-      return res.status(400).json({ error: "All field requred" });
+      return res.status(400).json({ error: "All fields required" });
     }
 
     const [hashOtp, expire] = hash.split(".");
@@ -47,7 +46,7 @@ class AuthController {
     const isValidOtp = otpService.verifyOtp(hashOtp, data);
 
     if (!isValidOtp) {
-      return res.status(400).json({ erro: "Invalid Otp" });
+      return res.status(400).json({ error: "Invalid Otp" });
     }
 
     let user;
@@ -58,7 +57,6 @@ class AuthController {
         user = await UserService.createUser({ phone });
       }
     } catch (error) {
-      console.log(error);
       return res.status(400).json({ error: error });
     }
 
@@ -81,15 +79,12 @@ class AuthController {
 
   async refresh(req, res) {
     const { refreshtoken: refreshTokenFromCookie } = req.cookies;
-    console.log("Received refresh token:", refreshTokenFromCookie); // Debug log
 
     let userData;
     try {
       userData = await tokenService.verifyRefreshToken(refreshTokenFromCookie);
-      console.log("Verified refresh token, user data:", userData); // Debug log
     } catch (error) {
-      console.error("Error verifying refresh token:", error); // Debug log
-      return res.status(401).json({ msg: "1Invalid Refresh Token" });
+      return res.status(401).json({ msg: "Invalid Refresh Token" });
     }
 
     let token;
@@ -99,12 +94,9 @@ class AuthController {
         refreshTokenFromCookie
       );
       if (!token) {
-        console.log("No token found for user:", userData.id); // Debug log
-        return res.status(401).json({ msg: "2Invalid Refresh Token" });
+        return res.status(401).json({ msg: "Invalid Refresh Token" });
       }
-      console.log("Token found for user:", token); // Debug log
     } catch (error) {
-      console.error("Error finding refresh token:", error); // Debug log
       return res.status(500).json({ msg: "Internal error" });
     }
 
@@ -112,12 +104,9 @@ class AuthController {
     try {
       user = await userService.findUser({ _id: userData.id });
       if (!user) {
-        console.log("User not found:", userData.id); // Debug log
         return res.status(400).json({ msg: "User Not Found" });
       }
-      console.log("User found:", user); // Debug log
     } catch (error) {
-      console.error("Error fetching user:", error); // Debug log
       return res.status(500).json({ msg: "Internal server error" });
     }
 
@@ -126,9 +115,7 @@ class AuthController {
       const tokens = tokenService.genrateTokens(user);
       refreshToken = tokens.refreshToken;
       accessToken = tokens.accessToken;
-      console.log("Generated tokens:", { refreshToken, accessToken }); // Debug log
     } catch (error) {
-      console.error("Error generating tokens:", error); // Debug log
       return res
         .status(500)
         .json({ msg: "Internal error while generating tokens" });
@@ -136,9 +123,7 @@ class AuthController {
 
     try {
       await tokenService.updateRefreshToken(userData.id, refreshToken);
-      console.log("Updated refresh token in database"); // Debug log
     } catch (error) {
-      console.error("Error updating refresh token:", error); // Debug log
       return res
         .status(500)
         .json({ msg: "Internal error updating refresh token" });
@@ -152,10 +137,8 @@ class AuthController {
       maxAge: 1000 * 60 * 60 * 24,
       httpOnly: true,
     });
-    console.log("Cookies set successfully"); // Debug log
 
     const userDto = new UserDto(user);
-    console.log("Sending response:", { user: userDto, auth: true }); // Debug log
     res.json({ user: userDto, auth: true });
   }
 
