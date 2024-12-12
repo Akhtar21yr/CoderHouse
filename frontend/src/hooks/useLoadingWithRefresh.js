@@ -12,7 +12,6 @@ const useLoadingWithRefresh = () => {
         const { data } = await axios.get("http://localhost:5500/api/refresh", {
           withCredentials: true,
         });
-        console.log("hitting>>>>>>>>>>>>>>>>>>>>");
         dispatch(setAuth(data));
         setLoading(false);
       } catch (error) {
@@ -22,7 +21,7 @@ const useLoadingWithRefresh = () => {
     })();
   }, []);
 
-  return {loading} ;
+  return { loading };
 };
 
 export default useLoadingWithRefresh;

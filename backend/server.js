@@ -7,7 +7,7 @@ const app = express();
 const server = require("http").createServer(app);
 const router = require("./routes");
 const dbConnect = require("./database");
-const ACTION = require("./actions");
+const ACTIONS = require("./ACTIONS");
 const io = require("socket.io")(server, {
   cors: {
     origin: "http://localhost:5173",
@@ -15,6 +15,7 @@ const io = require("socket.io")(server, {
 });
 dbConnect();
 const PORT = process.env.PORT || 5500;
+
 app.use(cookieParser());
 app.use(express.json());
 app.use("/storage", express.static("storage"));
@@ -32,18 +33,66 @@ app.get("/", (req, res) => {
 const socketUserMapping = {};
 
 io.on("connection", (socket) => {
-  socket.on(ACTION.JOIN, ({ roomId, user }) => {
+  // Handle JOIN event
+  socket.on(ACTIONS.JOIN, ({ roomId, user }) => {
     socketUserMapping[socket.id] = user;
     const room = io.sockets.adapter.rooms.get(roomId);
     const clients = room ? Array.from(room) : [];
     clients.forEach((clientId) => {
-      io.to(clientId).emit(ACTION.ADD_PEER, {});
-    });
+      // Notify existing clients of the new peer
+      io.to(clientId).emit(ACTIONS.ADD_PEER, {
+        peerId: socket.id,
+        createOffer: false,
+        user,
+      });
 
-    socket.emit(ACTION.ADD_PEER)
+      // Notify the new client of existing peers
+      socket.emit(ACTIONS.ADD_PEER, {
+        peerId: clientId,
+        createOffer: true,
+        user: socketUserMapping[clientId],
+      });
+    });
 
     socket.join(roomId);
   });
+
+  // Handle ICE Candidate relay
+  socket.on(ACTIONS.RELAY_ICE, ({ peerId, icecandidate }) => {
+    io.to(peerId).emit(ACTIONS.ICE_CANDIDATE, {
+      peerId: socket.id,
+      icecandidate,
+    });
+  });
+
+  // Handle SDP relay
+  socket.on(ACTIONS.RELAY_SDP, ({ peerId, sessionDes }) => {
+    io.to(peerId).emit(ACTIONS.SESSION_DES, {
+      peerId: socket.id,
+      sessionDes,
+    });
+  });
+
+  // Leaving room and cleaning up
+  const leaveRoom = () => {
+    const rooms = Array.from(socket.rooms); // Get the rooms the socket is part of
+    rooms.forEach((roomId) => {
+      if (roomId === socket.id) return; // Skip the socket's own room
+      const room = io.sockets.adapter.rooms.get(roomId);
+      const clients = room ? Array.from(room) : [];
+      clients.forEach((clientId) => {
+        io.to(clientId).emit(ACTIONS.REMOVE_PEER, {
+          peerId: socket.id,
+          userId: socketUserMapping[socket.id]?.id,
+        });
+      });
+      socket.leave(roomId);
+    });
+    delete socketUserMapping[socket.id];
+  };
+
+  socket.on(ACTIONS.LEAVE, leaveRoom);
+  socket.on("disconnecting", leaveRoom); // Handle disconnection
 });
 
 server.listen(PORT, () => console.log(`Running on port ${PORT}`));
