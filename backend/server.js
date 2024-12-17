@@ -73,6 +73,39 @@ io.on("connection", (socket) => {
     });
   });
 
+  socket.on(ACTIONS.MUTE, (payload) => {
+    console.log("MUTE payload received:", payload);
+    const { roomId, userId } = payload || {};
+    if (!roomId || !userId) {
+      console.error("Invalid payload for MUTE:", payload);
+      return;
+    }
+    // Proceed with mute logic
+    const clients = Array.from(io.sockets.adapter.rooms.get(roomId) || []);
+    clients.forEach((clientId) => {
+      io.to(clientId).emit(ACTIONS.MUTE, {
+        peerId: socket.id,
+        userId,
+      });
+    });
+  });
+
+  socket.on(ACTIONS.UNMUTE, (payload) => {
+    console.log("unmutwMUTE payload received:", payload);
+    const { roomId, userId } = payload || {};
+    if (!roomId || !userId) {
+      console.error("Invalid payload for unmuteMUTE:", payload);
+      return;
+    }
+    const clients = Array.from(io.sockets.adapter.rooms.get(roomId) || []);
+    clients.forEach((clientId) => {
+      io.to(clientId).emit(ACTIONS.UNMUTE, {
+        peerId: socket.id,
+        userId,
+      });
+    });
+  });
+
   // Leaving room and cleaning up
   const leaveRoom = () => {
     const rooms = Array.from(socket.rooms); // Get the rooms the socket is part of

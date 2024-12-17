@@ -10,9 +10,43 @@ const useWebRtc = ({ roomId, user }) => {
   const connections = useRef({});
   const localMediaStream = useRef(null);
   const socket = useRef(null);
+  const clientsRef = useRef([]);
 
   useEffect(() => {
     socket.current = socketInit();
+  }, []);
+
+  useEffect(() => {
+    clientsRef.current = clients;
+  }, [clients]);
+
+  // listen for mute and unmute
+  useEffect(() => {
+    socket.current.on(ACTIONS.MUTE, ({ peerId, userId }) => {
+      setMute(true, userId);
+    });
+    socket.current.on(ACTIONS.UNMUTE, ({ peerId, userId }) => {
+      setMute(false, userId);
+    });
+
+    const setMute = (mute, userId) => {
+      console.log('mute/unmute',mute)
+      setClients((prevClients) =>
+        prevClients.map((client) =>
+          client.id === userId ? { ...client, muted: mute } : client
+        )
+      );
+
+      const audioElement = audioElements.current[userId];
+      if (audioElement) {
+        audioElement.muted = mute;
+      }
+    };
+
+    return () => {
+      socket.current.off(ACTIONS.MUTE);
+      socket.current.off(ACTIONS.UNMUTE);
+    };
   }, []);
 
   const provideRef = (instance, userId) => {
@@ -39,7 +73,7 @@ const useWebRtc = ({ roomId, user }) => {
     };
 
     startCapture().then(() => {
-      addNewClient(user, () => {
+      addNewClient({ ...user, muted: true }, () => {
         const localElement = audioElements.current[user.id];
         if (localElement) {
           localElement.volume = 0;
@@ -77,7 +111,7 @@ const useWebRtc = ({ roomId, user }) => {
       };
 
       connections.current[peerId].ontrack = ({ streams: [remoteStream] }) => {
-        addNewClient(remoteUser, () => {
+        addNewClient({ ...remoteUser, muted: true }, () => {
           if (audioElements.current[remoteUser.id]) {
             audioElements.current[remoteUser.id].srcObject = remoteStream;
           } else {
@@ -129,7 +163,10 @@ const useWebRtc = ({ roomId, user }) => {
   }, []);
 
   useEffect(() => {
-    const handleRemoteSdp = async ({ peerId, sessionDes: remoteSessionDes }) => {
+    const handleRemoteSdp = async ({
+      peerId,
+      sessionDes: remoteSessionDes,
+    }) => {
       await connections.current[peerId].setRemoteDescription(
         new RTCSessionDescription(remoteSessionDes)
       );
@@ -171,7 +208,34 @@ const useWebRtc = ({ roomId, user }) => {
     };
   }, []);
 
-  return { clients, provideRef };
+  const handleMute = (isMute, userId) => {
+    
+    let settled = false;
+    if (userId === user.id) {
+      let interval = setInterval(() => {
+        if (localMediaStream.current) {
+          localMediaStream.current.getTracks()[0].enabled = !isMute;
+          if (isMute) {
+            socket.current.emit(ACTIONS.MUTE, {
+              roomId,
+              userId: userId,
+            });
+          } else {
+            socket.current.emit(ACTIONS.UNMUTE, {
+              roomId,
+              userId: user.id,
+            });
+          }
+          settled = true;
+        }
+        if (settled) {
+          clearInterval(interval);
+        }
+      }, 2000);
+    }
+  };
+
+  return { clients, provideRef, handleMute };
 };
 
 export default useWebRtc;
