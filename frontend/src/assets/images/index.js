@@ -18,6 +18,9 @@ import users_png from './Users.png'
 import Lock_png from './Lock.png'
 import celebration_png from './celebration.png'
 import close_png from './close.png'
+import arrow_left from './arrow.png'
+import mic_off_png from './mic_off.png'
+import mic_png from './mic.png'
 
 export {
   Emoji,
@@ -39,6 +42,9 @@ export {
   Globe_png,
   users_png,
   celebration_png,
-  close_png
+  close_png,
+  arrow_left,
+  mic_off_png,
+  mic_png
 
 };

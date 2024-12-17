@@ -1,11 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap');
-
-
 html {
-  
   font-size: 16px;
 }
-
 * {
   box-sizing: border-box;
 }
@@ -36,6 +31,13 @@ img {
   height: auto;
 }
 
+button {
+  border: none;
+  outline: none;
+  cursor: pointer;
+  font-weight: bold;
+}
+
 body {
   background: #121212;
   font-family: 'Nunito', sans-serif;
@@ -52,12 +54,5 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: 6rem;
-}
-
-
-button {
-  border: none;
-  outline: none;
-  font-weight: bold;
+  min-height: calc(100vh - 140px);
 }

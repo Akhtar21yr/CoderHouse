@@ -11,6 +11,7 @@ export const ACTIVATE_API = (data) => api.post("/api/activate", data);
 export const LOGOUT_API = () => api.get('/api/logout')
 export const CREATE_ROOM_API = (data) => api.post('/api/rooms',data)
 export const GET_ALL_ROOMS_API =  () => api.get('/api/rooms')
+export const GET_ROOM_API = (roomId) => api.get(`/api/rooms/${roomId}`)
 
 
 
